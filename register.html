@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CekBMiku - Register</title>
+  <link rel="stylesheet" href="css/register.css">
+
+  <!-- Font Awesome untuk ikon mata -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="left-section">
+      <div class="logo">
+        <img src="asset/Logo.png" alt="Logo CekBMiku">
+      </div>
+
+      <div class="register-box">
+        <h3>Buat akunmu dan mulai perjalanan sehatmu!</h3>
+
+        <form id="registerForm">
+          <input type="text" id="name" placeholder="Nama Lengkap" required>
+          <input type="email" id="email" placeholder="Email" required>
+
+          <div class="password-wrapper">
+            <input type="password" id="password" placeholder="Password" required>
+            <i class="fa-solid fa-eye toggle-pass" data-target="password"></i>
+          </div>
+
+          <div class="password-wrapper">
+            <input type="password" id="confirm" placeholder="Konfirmasi Password" required>
+            <i class="fa-solid fa-eye toggle-pass" data-target="confirm"></i>
+          </div>
+
+          <div class="input-row">
+            <input type="number" id="age" placeholder="Umur" required>
+            <select id="gender" required>
+              <option value="" disabled selected>Jenis Kelamin</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-register">Daftar</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="right-section">
+      <img src="asset/register.png" alt="Ilustrasi Register" />
+    </div>
+  </div>
+
+  <!-- Hubungkan file JavaScript eksternal -->
+  <script src="js/register.js"></script>
+</body>
+</html>
