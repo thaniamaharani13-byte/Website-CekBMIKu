@@ -1,3 +1,46 @@
+<?php
+include 'koneksi.php';
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $height = floatval($_POST['height']);
+    $weight = floatval($_POST['weight']);
+    $gender = $_POST['gender'];
+
+    // Hitung BMI
+    $bmi = $weight / (($height / 100) ** 2);
+    $bmi = round($bmi, 1);
+
+    // Hitung berat ideal
+    $base = $height - 100;
+    $ideal = ($gender == "male") ? $base - ($base * 0.10) : $base - ($base * 0.15);
+    $ideal = round($ideal, 1);
+
+    // Tentukan note / saran
+    if ($bmi < 18.5) {
+        $note = "Mungkin perlu menambah asupan gizi seimbang.";
+    } elseif ($bmi < 25) {
+        $note = "Bagus! Pertahankan pola makan dan aktivitas sehat.";
+    } elseif ($bmi < 30) {
+        $note = "Perhatikan porsi makan dan tambah olahraga rutin.";
+    } else {
+        $note = "Utamakan hidup sehat dan pertimbangkan konsultasi ahli gizi.";
+    }
+
+    // Simpan ke database
+    $stmt = $conn->prepare("INSERT INTO bmi_results (height_cm, weight_kg, bmi, gender, ideal_weight, note) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("dddsds", $height, $weight, $bmi, $gender, $ideal, $note);
+
+    if ($stmt->execute()) {
+        $last_id = $conn->insert_id;
+        header("Location: hasil.php?id=$last_id");
+        exit();
+    } else {
+        die("Gagal menyimpan data: " . $stmt->error);
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -15,13 +58,14 @@
     </div>
 
     <div class="nav-right">
-      <ul class="nav-menu">
-        <li><a href="index.html" class="active">Home</a></li>
-        <li><a href="#tentang">Tentang Kami</a></li>
-        <li><a href="#artikel">Artikel</a></li>
-        <li><a href="#faq">FAQ</a></li>
-        <li><a href="#masukan">Masukan</a></li>
-      </ul>
+  <ul class="nav-menu">
+    <li><a href="index.php" class="active">Home</a></li>
+    <li><a href="#tentangkami">Tentang Kami</a></li>
+    <li><a href="#artikel">Artikel</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#masukan">Masukan</a></li>
+  </ul>
+</div>
 
       <div class="nav-profile">
         <a href="profile.html">
@@ -61,11 +105,17 @@
       </div>
 
       <div class="form">
-        <form id="bmiForm">
-          <input type="number" class="height" placeholder="Masukkan Tinggi Badan (cm)" required>
-          <input type="number" class="weight" placeholder="Masukkan Berat Badan (kg)" required>
-          <button type="submit">Cek BMI</button>
-        </form>
+        <form method="POST" action="">
+  <input type="number" name="height" class="height" placeholder="Masukkan Tinggi Badan (cm)" required>
+  <input type="number" name="weight" class="weight" placeholder="Masukkan Berat Badan (kg)" required>
+
+  <select name="gender" required>
+      <option value="male">Pria</option>
+      <option value="female">Wanita</option>
+  </select>
+
+  <button type="submit">Cek BMI</button>
+</form>
 
         <div class="result" id="result"></div>
       </div>
@@ -262,6 +312,5 @@
   </div>
 </footer>
 
-<script src="js/main.js"></script>
 </body>
 </html>

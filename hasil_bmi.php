@@ -1,31 +1,33 @@
 <?php
-// === sambungkan ke database ===
 include 'koneksi.php';
 
-// pastikan metode request adalah POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // ambil data dari permintaan
-    $height = isset($_POST['height']) ? floatval($_POST['height']) : 0;
-    $weight = isset($_POST['weight']) ? floatval($_POST['weight']) : 0;
-    $bmi    = isset($_POST['bmi']) ? floatval($_POST['bmi']) : 0;
-    $gender = isset($_POST['gender']) ? $_POST['gender'] : 'unknown';
-    $ideal  = isset($_POST['ideal_weight']) ? floatval($_POST['ideal_weight']) : null;
+    $height = floatval($_POST['height']);
+    $weight = floatval($_POST['weight']);
+    $bmi    = floatval($_POST['bmi']);
+    $gender = $_POST['gender'];
+    $ideal  = isset($_POST['ideal_weight']) ? $_POST['ideal_weight'] : null;
     $note   = isset($_POST['note']) ? $_POST['note'] : null;
 
-    // validasi sederhana
     if ($height <= 0 || $weight <= 0 || $bmi <= 0) {
         echo json_encode(["status" => "error", "message" => "Data tidak valid."]);
         exit;
     }
 
-    // ambil IP dan user agent (opsional)
+    $ideal = ($ideal !== null && $ideal !== "") ? floatval($ideal) : null;
+    $note  = ($note !== null && $note !== "") ? $note : null;
+
     $ip = $_SERVER['REMOTE_ADDR'];
     $ua = $_SERVER['HTTP_USER_AGENT'];
 
-    // siapkan query simpan data
     $stmt = $conn->prepare("INSERT INTO bmi_results (height_cm, weight_kg, bmi, gender, ideal_weight, note, ip_address, user_agent) 
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+
+    if (!$stmt) {
+        die("Prepare gagal: " . $conn->error);
+    }
+
     $stmt->bind_param("dddsdsss", $height, $weight, $bmi, $gender, $ideal, $note, $ip, $ua);
 
     if ($stmt->execute()) {
@@ -35,9 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt->close();
-} else {
-    echo json_encode(["status" => "error", "message" => "Metode request tidak diizinkan."]);
 }
-
 $conn->close();
 ?>

@@ -4,10 +4,9 @@ require_once __DIR__ . '/php/koneksi.php';
 if (!isset($_SESSION['admin_id'])) { header('Location: login.php'); exit; }
 
 $res = $conn->query("
-    SELECT b.id, b.user_id, u.nama, b.tinggi, b.berat, b.bmi, b.kategori, b.tanggal
-    FROM hasil_bmi b
-    LEFT JOIN users u ON b.user_id = u.id
-    ORDER BY b.tanggal DESC
+    SELECT id, height_cm AS tinggi, weight_kg AS berat, bmi, note, created_at AS tanggal
+    FROM bmi_results
+    ORDER BY created_at DESC
 ");
 ?>
 <!doctype html>

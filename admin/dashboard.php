@@ -8,7 +8,7 @@ if (!isset($_SESSION['admin_id'])) {
 
 // Ambil statistik
 $user_count = $conn->query('SELECT COUNT(*) as cnt FROM users')->fetch_assoc()['cnt'] ?? 0;
-$bmi_count = $conn->query('SELECT COUNT(*) as cnt FROM hasil_bmi')->fetch_assoc()['cnt'] ?? 0;
+$bmi_count = $conn->query('SELECT COUNT(*) as cnt FROM bmi_results')->fetch_assoc()['cnt'] ?? 0;
 $article_count = $conn->query('SELECT COUNT(*) as cnt FROM artikel')->fetch_assoc()['cnt'] ?? 0;
 ?>
 <!doctype html>

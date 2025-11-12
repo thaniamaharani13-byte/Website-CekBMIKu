@@ -1,3 +1,34 @@
+<?php
+// ==========================================
+// profile.php - Halaman Profil User
+// ==========================================
+session_start();
+require_once __DIR__ . '/php/koneksi.php';
+
+// Cek apakah user sudah login
+if (!isset($_SESSION['user_id'])) {
+  header("Location: login.php");
+  exit;
+}
+
+$user_id = $_SESSION['user_id'];
+
+// Ambil data user
+$query = $conn->prepare("SELECT nama, email, umur, gender FROM users WHERE id_user = ?");
+$query->bind_param("i", $user_id);
+$query->execute();
+$result = $query->get_result();
+$user = $result->fetch_assoc();
+
+// Ambil riwayat cek BMI user
+$riwayatQuery = $conn->prepare("SELECT hasil_bmi, tinggi, berat, status_bmi, tanggal_input 
+                                FROM bmi_history 
+                                WHERE id_user = ? 
+                                ORDER BY tanggal_input DESC");
+$riwayatQuery->bind_param("i", $user_id);
+$riwayatQuery->execute();
+$riwayat = $riwayatQuery->get_result();
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
