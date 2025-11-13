@@ -34,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -59,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h3>Lanjutkan perjalanan sehatmu, masuk disini!</h3>
 
         <form id="loginForm" method="POST" action="login.php">
+            <input type="text" name="name" id="name" placeholder="Nama" required />
             <input type="email" name="email" id="email" placeholder="Email" required>
             <div class="password-wrapper">
             <input type="password" name="password" id="password" placeholder="Password" required>
