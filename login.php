@@ -12,15 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Email dan password wajib diisi.";
     } else {
         // Cek user di database
-        $stmt = $conn->prepare("SELECT id_user, nama, email, password_hash FROM users WHERE email = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT id_user, nama, password_hash FROM users WHERE email = ? LIMIT 1");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $res = $stmt->get_result();
 
         if ($row = $res->fetch_assoc()) {
             if (password_verify($password, $row['password_hash'])) {
-                // Jika benar → simpan ke session
-                $_SESSION['user_id'] = $row['id_user'];
+                // Jika password benar, simpan session
+                $_SESSION['id_user'] = $row['id_user'];
                 $_SESSION['user_name'] = $row['nama'];
 
                 header("Location: index.php");
@@ -57,16 +57,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="login-box">
         <h3>Lanjutkan perjalanan sehatmu, masuk disini!</h3>
 
-        <form id="loginForm" method="POST" action="login.php">
-            <input type="text" name="name" id="name" placeholder="Nama" required />
-            <input type="email" name="email" id="email" placeholder="Email" required>
-            <div class="password-wrapper">
-            <input type="password" name="password" id="password" placeholder="Password" required>
-        <i class="fa-solid fa-eye" id="togglePassword"></i>
-            </div>
-        <button type="submit" class="btn-login">Masuk</button>
-        </form>
+        <!-- Tampilkan pesan error -->
+        <?php if ($error): ?>
+          <p style="color:red; font-weight:bold;"><?= htmlspecialchars($error) ?></p>
+        <?php endif; ?>
 
+        <form id="loginForm" method="POST" action="login.php">
+          <input type="email" name="email" id="email" placeholder="Email" required>
+          
+          <div class="password-wrapper">
+            <input type="password" name="password" id="password" placeholder="Password" required>
+            <i class="fa-solid fa-eye" id="togglePassword"></i>
+          </div>
+
+          <button type="submit" class="btn-login">Masuk</button>
+        </form>
 
         <p class="register-text">Belum Punya Akun?</p>
         <button class="btn-register" onclick="window.location.href='register.php'">Register</button>

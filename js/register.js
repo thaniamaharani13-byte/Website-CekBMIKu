@@ -13,7 +13,6 @@ document.querySelectorAll(".toggle-pass").forEach(icon => {
 
 // Validasi dan pesan sukses
 form.addEventListener("submit", e => {
-  e.preventDefault();
 
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -33,5 +32,5 @@ form.addEventListener("submit", e => {
   }
 
   alert(`Selamat datang, ${name}! Akun kamu berhasil dibuat.`);
-  window.location.href = "login.html";
+  window.location.href = "login.php";
 });

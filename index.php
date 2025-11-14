@@ -1,35 +1,68 @@
 <?php
 include 'koneksi.php';
+session_start();
 
+// Cek login
+if (!isset($_SESSION['id_user'])) {
+    header("Location: login.php");
+    exit;
+}
+
+// AMBIL SEMUA ARTIKEL DARI DATABASE
+$artikelQuery = $conn->query("SELECT * FROM artikel ORDER BY tanggal DESC");
+$artikelData = [];
+while ($row = $artikelQuery->fetch_assoc()) {
+    $artikelData[] = $row;
+}
+
+// PROSES HITUNG BMI JIKA SUBMIT
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $height = floatval($_POST['height']);
     $weight = floatval($_POST['weight']);
-    $gender = $_POST['gender'];
+    $gender = $_POST['gender'] ?? 'unknown';
+    $id_user = $_SESSION['id_user'];
 
     // Hitung BMI
-    $bmi = $weight / (($height / 100) ** 2);
+    $bmi = $weight / pow(($height / 100), 2);
     $bmi = round($bmi, 1);
 
-    // Hitung berat ideal
+    // Hitung Berat Ideal
     $base = $height - 100;
-    $ideal = ($gender == "male") ? $base - ($base * 0.10) : $base - ($base * 0.15);
+    if ($gender == "male") {
+        $ideal = $base - ($base * 0.10);
+    } elseif ($gender == "female") {
+        $ideal = $base - ($base * 0.15);
+    } else {
+        $ideal = $base;
+    }
     $ideal = round($ideal, 1);
 
-    // Tentukan note / saran
+    // Tentukan kategori
     if ($bmi < 18.5) {
-        $note = "Mungkin perlu menambah asupan gizi seimbang.";
+        $kategori = "Kurus";
     } elseif ($bmi < 25) {
-        $note = "Bagus! Pertahankan pola makan dan aktivitas sehat.";
+        $kategori = "Normal";
     } elseif ($bmi < 30) {
-        $note = "Perhatikan porsi makan dan tambah olahraga rutin.";
+        $kategori = "Kelebihan Berat Badan";
     } else {
-        $note = "Utamakan hidup sehat dan pertimbangkan konsultasi ahli gizi.";
+        $kategori = "Obesitas";
     }
 
     // Simpan ke database
-    $stmt = $conn->prepare("INSERT INTO bmi_results (height_cm, weight_kg, bmi, gender, ideal_weight, note) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("dddsds", $height, $weight, $bmi, $gender, $ideal, $note);
+    $stmt = $conn->prepare("
+        INSERT INTO hasil_bmi (id_user, berat, tinggi, nilai_bmi, berat_ideal, kategori)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ");
+
+    $stmt->bind_param("idddds", 
+        $id_user,
+        $weight,
+        $height,
+        $bmi,
+        $ideal,
+        $kategori
+    );
 
     if ($stmt->execute()) {
         $last_id = $conn->insert_id;
@@ -49,8 +82,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <title>CekBMIku</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
+<!-- ==================== NAVBAR ==================== -->
 <nav>
   <div class="nav-content">
     <div class="nav-logo">
@@ -58,39 +93,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <div class="nav-right">
-  <ul class="nav-menu">
-    <li><a href="index.php" class="active">Home</a></li>
-    <li><a href="#tentangkami">Tentang Kami</a></li>
-    <li><a href="#artikel">Artikel</a></li>
-    <li><a href="#faq">FAQ</a></li>
-    <li><a href="#masukan">Masukan</a></li>
-  </ul>
-</div>
+      <ul class="nav-menu">
+        <li><a href="index.php" class="active">Home</a></li>
+        <li><a href="#tentangkami">Tentang Kami</a></li>
+        <li><a href="#artikel">Artikel</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#masukan">Masukan</a></li>
+      </ul>
+    </div>
 
-      <div class="nav-profile">
-        <a href="profile.html">
-          <img src="asset/pp profile.png" alt="Profil">
-        </a>
-      </div>
+    <div class="nav-profile">
+      <a href="profile.php">
+        <img src="asset/pp profile.png" alt="Profil">
+      </a>
     </div>
   </div>
 </nav>
 
-  <!--Bagian Utama Kalkulator BMI -->
-  <section id="home" class="container">
+
+<!-- ==================== FORM BMI ==================== -->
+<section id="home" class="container">
     
-    <!-- Bagian kiri -->
     <div class="left-section">
       <h2>CekBMIku – Cara Mudah Tahu Berat Badan Idealmu!</h2>
       <p>
         Memiliki tubuh ideal tentu menjadi dambaan banyak orang.
         Bukan hanya soal penampilan, tetapi juga sebagai tanda bahwa tubuh berada dalam kondisi sehat dan seimbang.
-        Bagaimana dengan kamu? Sudahkah berat badanmu termasuk ideal?
-        Yuk, cari tahu sekarang lewat BMI Kalkulator di CekBMIku dan dapatkan gambaran kesehatan tubuhmu dengan cepat dan mudah!
+        Yuk, cari tahu sekarang lewat BMI Kalkulator di CekBMIku!
       </p>
     </div>
 
-    <!-- Bagian kanan -->
     <div class="right-section">
       <div class="gender-container">
         <div class="gender" id="male">
@@ -105,206 +137,177 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
 
       <div class="form">
-        <form method="POST" action="">
-  <input type="number" name="height" class="height" placeholder="Masukkan Tinggi Badan (cm)" required>
-  <input type="number" name="weight" class="weight" placeholder="Masukkan Berat Badan (kg)" required>
-
-  <select name="gender" required>
-      <option value="male">Pria</option>
-      <option value="female">Wanita</option>
-  </select>
-
-  <button type="submit">Cek BMI</button>
-</form>
-
-        <div class="result" id="result"></div>
+        <form method="POST" action="" id="bmiForm">
+          <input type="hidden" name="gender" id="genderInput" required>
+          <input type="number" name="height" class="height" placeholder="Masukkan Tinggi Badan (cm)" required>
+          <input type="number" name="weight" class="weight" placeholder="Masukkan Berat Badan (kg)" required>
+          <button type="submit">Cek BMI</button>
+        </form>
       </div>
     </div>
-  </section>
 
-  <!-- Bagian Tentang Kami -->
-  <section id="tentangkami" class="about-section">
-    <div class="about-hero">
-      <img src="asset/BannerTentangKami.png" alt="Banner Tentang Kami" class="about-banner">
-    </div>
+</section>
 
-    <div class="about-content">
-      <h2><strong>CekBMIku – Cek Sehatmu!</strong></h2>
-      <p>
-        Website kalkulator BMI yang membantu pengguna mengetahui apakah berat badan mereka sudah ideal berdasarkan tinggi badan.
-        Website ini dirancang agar mudah digunakan, cepat, dan informatif.
-        Selain menghitung BMI, CekBMIku juga memberikan penjelasan kategori berat badan serta tips menjaga pola hidup sehat.
-      </p>
 
-      <div class="info-container">
-        <div class="info-box">
-          <p>
-            <strong>Tujuan kami sederhana:</strong><br>
-            Membantu setiap orang lebih sadar akan kesehatannya
-            melalui cara yang praktis dan menyenangkan.
-          </p>
-        </div>
 
-        <div class="info-box">
-          <p>
-            <strong>Fitur Utama:</strong><br>
-            - Kalkulator BMI interaktif<br>
-            - Penjelasan hasil dan kategori berat badan<br>
-            - Tips sehat sesuai hasil BMI<br>
-            - FAQ dan artikel seputar kesehatan
-          </p>
-        </div>
+<!-- ==================== TENTANG KAMI ==================== -->
+<section id="tentangkami" class="about-section">
+
+  <div class="about-hero">
+    <img src="asset/BannerTentangKami.png" alt="Banner Tentang Kami" class="about-banner">
+  </div>
+
+  <div class="about-content">
+    <h2><strong>CekBMIku – Cek Sehatmu!</strong></h2>
+    <p>
+      Website kalkulator BMI yang membantu pengguna mengetahui apakah berat badan mereka sudah ideal berdasarkan tinggi badan.
+      Selain menghitung BMI, CekBMIku juga memberikan penjelasan kategori berat badan serta tips menjaga pola hidup sehat.
+    </p>
+
+    <div class="info-container">
+      <div class="info-box">
+        <p>
+          <strong>Tujuan kami sederhana:</strong><br>
+          Membantu setiap orang lebih sadar akan kesehatannya melalui cara yang praktis dan menyenangkan.
+        </p>
       </div>
 
-      <p class="footer-email">📧 cekbmiku@gmail.com</p>
+      <div class="info-box">
+        <p>
+          <strong>Fitur Utama:</strong><br>
+          - Kalkulator BMI interaktif<br>
+          - Penjelasan hasil dan kategori<br>
+          - Tips sehat sesuai hasil BMI<br>
+          - FAQ dan artikel seputar kesehatan
+        </p>
+      </div>
     </div>
-  </section>
 
-  <!-- Bagian Artikel & Tips Hidup Sehat -->
+    <p class="footer-email">📧 cekbmiku@gmail.com</p>
+  </div>
+
+</section>
+
+
+
+<!-- ==================== ARTIKEL (DINAMIS DATABASE) ==================== -->
 <section id="artikel" class="artikel-section">
   <h2>Artikel & Tips Hidup Sehat</h2>
 
   <div class="artikel-container">
 
-    <a href="https://www.halodoc.com/kesehatan/hidup-sehat?srsltid=AfmBOoqoQC8ZzHLYVT6T07PNmwJohs1H8XxmWAGiUQV1_c7YaTEOZgAZ" class="artikel-card">
-      <img src="asset/GambarArtikel1.jpg" alt="Hidup Sehat">
-      <div class="artikel-text">
-        <h3>Hidup Sehat</h3>
-        <p>
-          Semua orang pasti ingin selalu sehat dan terhindar dari berbagai penyakit.
-          Dengan tubuh dan pikiran yang sehat, kualitas hidup juga meningkat.
-        </p>
-      </div>
-    </a>
+    <?php if (!empty($artikelData)): ?>
+        <?php foreach ($artikelData as $a): ?>
 
-    <a href="https://www.halodoc.com/artikel/pola-hidup-sehat-untuk-menjaga-berat-badan-ideal?srsltid=AfmBOopvxf2UV7wtQQOP7XJoDLVoTtuVx9lbEpoilRke5CH4FQNa6Du3" class="artikel-card">
-      <img src="asset/GambarArtikel2.jpg" alt="Kiat Menjaga Berat Badan">
-      <div class="artikel-text">
-        <h3>Kiat Menjaga Berat Badan Ideal yang Tahan Lama</h3>
-        <p>
-          Punya berat badan ideal tentu jadi idaman banyak orang. Dengan pola hidup seimbang,
-          kamu bisa mempertahankannya dalam jangka panjang.
-        </p>
-      </div>
-    </a>
+            <a href="<?= htmlspecialchars($a['link']) ?>" class="artikel-card" target="_blank">
 
-    <a href="https://www.halodoc.com/artikel/9-langkah-sederhana-untuk-memulai-pola-hidup-sehat?srsltid=AfmBOorFF1w0Y3Fu_RdUuNSQW0c9Ijtas_cWTcJ2g8NXx7kcYZNBVNCx" class="artikel-card">
-      <img src="asset/GambarArtikel3.jpg" alt="Pola Hidup Sehat">
-      <div class="artikel-text">
-        <h3>Pola Hidup Sehat untuk Menjaga Berat Badan Ideal</h3>
-        <p>
-          Berat badan ideal sering menjadi impian banyak orang karena mencerminkan kesehatan dan kepercayaan diri.
-        </p>
-      </div>
-    </a>
+                <img 
+                    src="uploads/artikel/<?= htmlspecialchars($a['gambar']) ?>" 
+                    alt="<?= htmlspecialchars($a['judul']) ?>"
+                >
 
-    <a href="https://www.halodoc.com/artikel/kiat-menjaga-berat-badan-ideal-yang-tahan-lama?srsltid=AfmBOopxRCrU2in7gg357tjaTEbVQX7tV_Wpis4oSFR0Mab1VpOdEBri" class="artikel-card">
-      <img src="asset/GambarArtikel4.png" alt="Real Food">
-      <div class="artikel-text">
-        <h3>Real Food: Makanan Sehat Alami, Lebih Baik dan Bergizi!</h3>
-        <p>
-          Real food adalah makanan alami tanpa proses berlebih dan tanpa tambahan bahan kimia.
-          Pilihan cerdas untuk tubuh yang lebih sehat.
-        </p>
-      </div>
-    </a>
+                <div class="artikel-text">
+                    <h3><?= htmlspecialchars($a['judul']) ?></h3>
+                    <p><?= htmlspecialchars(substr($a['deskripsi'], 0, 120)) ?>...</p>
+                </div>
 
-    <a href="https://www.halodoc.com/artikel/real-food-makanan-sehat-alami-lebih-baik-dan-bergizi?srsltid=AfmBOookIkSfpbxRfFu94McaAaJzpXs04gegwQ2VpXEEClXZOzH5PPhl" class="artikel-card">
-      <img src="asset/GambarArtikel5.jpg" alt="Langkah Sederhana">
-      <div class="artikel-text">
-        <h3>9 Langkah Sederhana untuk Memulai Pola Hidup Sehat</h3>
-        <p>
-          Mulailah dari kebiasaan kecil seperti minum cukup air, tidur cukup, dan olahraga ringan untuk hidup lebih seimbang.
-        </p>
-      </div>
-    </a>
+            </a>
 
-    <a href="https://www.halodoc.com/artikel/nutrisi-pengertian-dan-jenis-jenisnya-yang-perlu-diketahui?srsltid=AfmBOorUFQ9E8SwcSnThKsfYu5MnR9AzlTVrlNCTZBlEgcGxCpSESmnf" class="artikel-card">
-      <img src="asset/GambarArtikel6.jpg" alt="Nutrisi">
-      <div class="artikel-text">
-        <h3>Nutrisi, Pengertian dan Jenis-Jenisnya yang Perlu Diketahui</h3>
-        <p>
-          Nutrisi terbagi menjadi makro dan mikro, keduanya penting untuk menunjang energi dan menjaga sistem tubuh agar optimal.
-        </p>
-      </div>
-    </a>
+        <?php endforeach; ?>
+
+    <?php else: ?>
+        <p>Tidak ada artikel tersedia saat ini.</p>
+    <?php endif; ?>
+
   </div>
 </section>
 
+
+
+<!-- ==================== FAQ ==================== -->
 <section id="faq" class="faq-section">
   <h2>Yuk, Kenali Lebih Dalam Tentang BMI!</h2>
 
   <div class="faq-container">
+
     <div class="box">
       <div class="box_head">Apa itu BMI?</div>
       <div class="box_text">
-        BMI (Body Mass Index) atau Indeks Massa Tubuh adalah ukuran yang digunakan untuk mengetahui apakah berat badan seseorang sudah proporsional dengan tinggi badannya.
+        BMI (Body Mass Index) digunakan untuk mengetahui apakah berat badan seseorang sudah proporsional.
       </div>
     </div>
+
     <div class="box">
       <div class="box_head">Bagaimana cara menghitung BMI?</div>
       <div class="box_text">
-      BMI dihitung dengan rumus:<br>
-      BMI = berat badan (kg) / (tinggi badan (m))²<br>
-      Contoh: jika berat 60 kg dan tinggi 1,65 m, maka BMI = 60 / (1,65 × 1,65) = 22,04.
+        BMI = berat badan (kg) / (tinggi (m))²
       </div>
     </div>
+
     <div class="box">
       <div class="box_head">Apa arti dari hasil BMI saya?</div>
       <div class="box_text">
-      Umumnya kategori BMI untuk orang dewasa adalah:<br>
-      < 18.5 → Berat badan kurang <br>
-      18.5 – 24.9 → Normal/ideal<br>
-      25 – 29.9 → Kelebihan berat badan<br>
-      ≥ 30 → Obesitas
+        < 18.5 → Kurus <br>
+        18.5 – 24.9 → Normal <br>
+        25 – 29.9 → Kelebihan berat badan <br>
+        ≥ 30 → Obesitas
       </div>
     </div>
+
     <div class="box">
-      <div class="box_head">Apakah hasil BMI berlaku untuk semua orang?</div>
+      <div class="box_head">Apakah BMI berlaku untuk semua orang?</div>
       <div class="box_text">
-      Tidak selalu. BMI hanya memberikan perkiraan umum. Hasil bisa kurang akurat untuk anak-anak, atlet, ibu hamil, atau orang dengan massa otot tinggi.
+        Tidak akurat untuk atlet, ibu hamil, anak-anak.
       </div>
     </div>
+
     <div class="box">
-      <div class="box_head">Apakah data saya disimpan di website ini?</div>
+      <div class="box_head">Apakah data saya disimpan?</div>
       <div class="box_text">
-      Tidak. CekBMIku tidak meminta login dan tidak menyimpan data pengguna. Semua perhitungan dilakukan langsung di browser Anda.
+        Ya, hanya untuk membantu riwayat hasil BMI akun kamu.
       </div>
     </div>
+
     <div class="box">
-      <div class="box_head">Apakah bisa digunakan di HP?</div>
+      <div class="box_head">Bisa digunakan di HP?</div>
       <div class="box_text">
-      Ya! Website CekBMIku sudah dirancang responsif, sehingga bisa diakses dengan nyaman lewat ponsel, tablet, maupun komputer.
+        Ya, web ini responsif untuk semua layar.
       </div>
     </div>
+
   </div>
 </section>
 
+
+
+<!-- ==================== MASUKAN ==================== -->
 <section class="masukan" id="masukan">
   <h2>Punya Ide atau Saran? Ceritakan di Sini!</h2>
   <form class="masukan-form">
-    <textarea 
-      placeholder="Ketik saran dan kritik di sini!" 
-      required>
-    </textarea>
+    <textarea placeholder="Ketik saran dan kritik di sini!" required></textarea>
     <button type="submit">Kirim</button>
   </form>
 </section>
 
+
+
+<!-- ==================== FOOTER ==================== -->
 <footer class="footer">
   <div class="footer-container">
+
     <div class="footer-left">
       <img src="asset/Logo2.png" alt="CekBMIMku Logo" class="footer-logo" />
     </div>
 
     <div class="footer-right">
       <ul>
-        <li><strong>Tentang CekBMIMku</strong></li>
+        <li><strong>Tentang CekBMIku</strong></li>
         <li>Email: cekbmiku@gmail.com</li>
         <li><a href="#faq">Butuh Bantuan? (FAQ)</a></li>
         <li><a href="#masukan">Saran & Masukan</a></li>
       </ul>
     </div>
+
   </div>
 
   <div class="footer-bottom">
@@ -312,5 +315,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </div>
 </footer>
 
+
+<script src="js/main.js"></script>
 </body>
 </html>

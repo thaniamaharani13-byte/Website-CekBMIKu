@@ -141,23 +141,26 @@ nav {
   height: 90px;
   border-radius: 50%;
   filter: grayscale(100%) brightness(80%);
-  transition: filter 0.3s ease;
+  transition: filter 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .gender p {
   margin-top: 10px;
   font-weight: bold;
   color: #aaa;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
 }
 
-/* Saat dipilih */
+/* ==== Saat dipilih ==== */
 .gender.active img {
-  filter: none;
+  filter: grayscale(0%) brightness(100%) saturate(130%);
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
 }
 
 .gender.active p {
   color: #fff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
 }
 
 .form {

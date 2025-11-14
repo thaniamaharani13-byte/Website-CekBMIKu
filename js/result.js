@@ -1,44 +1,38 @@
-// result.js //
 document.addEventListener('DOMContentLoaded', () => {
   const raw = sessionStorage.getItem('bmiResult');
-  const defaultData = { height: 0, weight: 0, bmi: 0, gender: 'unknown' };
+  const defaultData = { height: 0, weight: 0, bmi: 0, gender: 'unknown', idealWeight: '-' };
   const data = raw ? JSON.parse(raw) : defaultData;
 
-  // Hitung ulang ideal weight berdasarkan gender //
-  let idealWeight;
-  const base = data.height - 100;
+  const height = data.height;
+  const weight = data.weight;
+  const bmi = data.bmi;
+  const gender = data.gender;
+  const idealWeight = data.idealWeight;
 
-  if (data.gender === 'male') {
-    idealWeight = base - (base * 0.10); // Pria
-  } else if (data.gender === 'female') {
-    idealWeight = base - (base * 0.15); // Wanita
-  } else {
-    idealWeight = base; // jika tidak memilih gender
-  }
-
-  idealWeight = idealWeight > 0 ? idealWeight.toFixed(1) : '-';
-
-  // Elemen di hasil.html //
+  // Elemen hasil
   const infoContainer = document.querySelector('.bmi-info');
   const note = document.querySelector('.note');
 
   if (infoContainer) {
     infoContainer.innerHTML = `
-      <p><strong>Tinggi (cm):</strong> ${data.height || '-'}</p>
-      <p><strong>Berat (kg):</strong> ${data.weight || '-'}</p>
-      <p><strong>BMI kamu:</strong> <span class="bmi">${data.bmi || '-'}</span></p>
-      <p><strong>Berat ideal (${data.gender === 'male' ? 'Pria' : data.gender === 'female' ? 'Wanita' : 'Umum'}):</strong> ${idealWeight}</p>
+      <p><strong>Tinggi (cm):</strong> ${height || '-'}</p>
+      <p><strong>Berat (kg):</strong> ${weight || '-'}</p>
+      <p><strong>BMI kamu:</strong> <span class="bmi">${bmi || '-'}</span></p>
+      <p><strong>Berat ideal (${gender === 'male' ? 'Pria' : gender === 'female' ? 'Wanita' : 'Umum'}):</strong> 
+         ${idealWeight || '-'}</p>
+
       <div class="bmi-bar">
         <span class="bar"></span>
       </div>
     `;
   }
 
-  // Tentukan kategori BMI //
-  const bmiVal = Number(data.bmi);
+  // Tentukan kategori BMI
   let category = 'Tidak diketahui';
   let titleColor = '#D8518C';
   let noteText = 'Pertahankan gaya hidup sehat.';
+
+  const bmiVal = Number(bmi);
 
   if (!bmiVal || isNaN(bmiVal)) {
     category = 'Data tidak lengkap';
@@ -47,11 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
     category = 'Kurus';
     titleColor = '#D8518C';
     noteText = 'Mungkin perlu menambah asupan gizi seimbang.';
-  } else if (bmiVal >= 18.5 && bmiVal < 25) {
+  } else if (bmiVal < 25) {
     category = 'Normal';
     titleColor = '#2E86AB';
     noteText = 'Bagus! Pertahankan pola makan dan aktivitas sehat.';
-  } else if (bmiVal >= 25 && bmiVal < 30) {
+  } else if (bmiVal < 30) {
     category = 'Kelebihan Berat Badan';
     titleColor = '#F6C85F';
     noteText = 'Perhatikan porsi makan dan tambah olahraga rutin.';
@@ -61,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     noteText = 'Pertimbangkan konsultasi profesional.';
   }
 
-  // Update tampilan hasil //
+  // Update tampilan kategori
   const headline = document.querySelector('.left-section h1.obesitas');
   const subtitle = document.querySelector('.left-section .sub');
   const barEl = document.querySelector('.bmi-bar .bar');
@@ -80,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (note) note.textContent = noteText;
 
-  // Posisi bar //
+  // Posisi bar
   function bmiToPercent(bmi) {
     const min = 12, max = 40;
     if (!bmi || isNaN(bmi)) return 0;
