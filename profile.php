@@ -27,15 +27,17 @@ if (!$user) {
 }
 
 // Ambil riwayat BMI user
-$riwayatQuery = $conn->prepare("
-    SELECT nilai_bmi, tinggi, berat, kategori, tanggal_input 
-    FROM hasil_bmi 
+$id_user = $_SESSION['id_user'];
+
+$stmt = $conn->prepare("
+    SELECT nilai_bmi, kategori, tanggal, berat, tinggi, jenis_kelamin, berat_ideal
+    FROM hasil_bmi
     WHERE id_user = ?
-    ORDER BY tanggal_input DESC
+    ORDER BY tanggal DESC
 ");
-$riwayatQuery->bind_param("i", $id_user);
-$riwayatQuery->execute();
-$riwayat = $riwayatQuery->get_result();
+$stmt->bind_param("i", $id_user);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -88,14 +90,14 @@ $riwayat = $riwayatQuery->get_result();
         <h4 class="riwayat-title">Riwayat Cek BMI</h4>
 
         <div class="riwayat-list" id="riwayatList">
-            <?php if ($riwayat->num_rows > 0): ?>
-                <?php while ($row = $riwayat->fetch_assoc()): ?>
+            <?php if ($result->num_rows > 0): ?>
+               <?php while ($row = $result->fetch_assoc()): ?>
                     <div class="riwayat-item">
                         <span class="status"><?= htmlspecialchars($row['kategori']); ?></span>
                         <p>Hasil BMI: <?= htmlspecialchars($row['nilai_bmi']); ?></p>
                         <p>Tinggi (cm): <?= htmlspecialchars($row['tinggi']); ?></p>
                         <p>Berat (kg): <?= htmlspecialchars($row['berat']); ?></p>
-                        <span class="tanggal"><?= htmlspecialchars($row['tanggal_input']); ?></span>
+                        <span class="tanggal"><?= htmlspecialchars($row['tanggal']); ?></span>
                     </div>
                 <?php endwhile; ?>
             <?php else: ?>

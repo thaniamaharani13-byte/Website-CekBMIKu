@@ -13,6 +13,25 @@ $artikelQuery = $conn->query("SELECT * FROM artikel ORDER BY tanggal DESC");
 $artikelData = [];
 while ($row = $artikelQuery->fetch_assoc()) {
     $artikelData[] = $row;
+    
+}
+
+// =================== PROSES MASUKAN ===================
+if (isset($_POST['kirim_masukan'])) {
+
+    $id_user = $_SESSION['id_user'];
+    $pesan = $conn->real_escape_string($_POST['pesan']);
+
+    $query = "INSERT INTO masukan (id_user, pesan) VALUES ('$id_user', '$pesan')";
+    
+    if ($conn->query($query)) {
+        $_SESSION['notif_masukan'] = "Masukan berhasil dikirim!";
+    } else {
+        $_SESSION['notif_masukan'] = "Gagal mengirim masukan.";
+    }
+
+    header("Location: index.php#masukan");
+    exit();
 }
 
 // PROSES HITUNG BMI JIKA SUBMIT
@@ -51,18 +70,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Simpan ke database
     $stmt = $conn->prepare("
-        INSERT INTO hasil_bmi (id_user, berat, tinggi, nilai_bmi, berat_ideal, kategori)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ");
+    INSERT INTO hasil_bmi (id_user, berat, tinggi, jenis_kelamin, nilai_bmi, berat_ideal, kategori)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+");
 
-    $stmt->bind_param("idddds", 
-        $id_user,
-        $weight,
-        $height,
-        $bmi,
-        $ideal,
-        $kategori
-    );
+$stmt->bind_param("iddsdds", 
+    $id_user,       // i
+    $weight,        // d
+    $height,        // d
+    $gender,        // s
+    $bmi,           // d
+    $ideal,         // d
+    $kategori       // s
+);
 
     if ($stmt->execute()) {
         $last_id = $conn->insert_id;
@@ -110,7 +130,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </div>
 </nav>
 
-
 <!-- ==================== FORM BMI ==================== -->
 <section id="home" class="container">
     
@@ -147,8 +166,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
 </section>
-
-
 
 <!-- ==================== TENTANG KAMI ==================== -->
 <section id="tentangkami" class="about-section">
@@ -188,8 +205,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 </section>
 
-
-
 <!-- ==================== ARTIKEL (DINAMIS DATABASE) ==================== -->
 <section id="artikel" class="artikel-section">
   <h2>Artikel & Tips Hidup Sehat</h2>
@@ -222,74 +237,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </div>
 </section>
 
-
-
 <!-- ==================== FAQ ==================== -->
 <section id="faq" class="faq-section">
   <h2>Yuk, Kenali Lebih Dalam Tentang BMI!</h2>
 
   <div class="faq-container">
 
-    <div class="box">
-      <div class="box_head">Apa itu BMI?</div>
-      <div class="box_text">
-        BMI (Body Mass Index) digunakan untuk mengetahui apakah berat badan seseorang sudah proporsional.
-      </div>
-    </div>
+    <?php
+      include 'koneksi.php';
 
-    <div class="box">
-      <div class="box_head">Bagaimana cara menghitung BMI?</div>
-      <div class="box_text">
-        BMI = berat badan (kg) / (tinggi (m))²
-      </div>
-    </div>
+      $faq = $conn->query("SELECT * FROM faq WHERE status='aktif' ORDER BY urutan ASC, id_faq ASC");
 
-    <div class="box">
-      <div class="box_head">Apa arti dari hasil BMI saya?</div>
-      <div class="box_text">
-        < 18.5 → Kurus <br>
-        18.5 – 24.9 → Normal <br>
-        25 – 29.9 → Kelebihan berat badan <br>
-        ≥ 30 → Obesitas
-      </div>
-    </div>
+      if ($faq->num_rows > 0):
+        while ($row = $faq->fetch_assoc()):
+    ?>
+        <div class="box">
+          <div class="box_head"><?= htmlspecialchars($row['pertanyaan']) ?></div>
+          <div class="box_text"><?= nl2br(htmlspecialchars($row['jawaban'])) ?></div>
+        </div>
 
-    <div class="box">
-      <div class="box_head">Apakah BMI berlaku untuk semua orang?</div>
-      <div class="box_text">
-        Tidak akurat untuk atlet, ibu hamil, anak-anak.
-      </div>
-    </div>
-
-    <div class="box">
-      <div class="box_head">Apakah data saya disimpan?</div>
-      <div class="box_text">
-        Ya, hanya untuk membantu riwayat hasil BMI akun kamu.
-      </div>
-    </div>
-
-    <div class="box">
-      <div class="box_head">Bisa digunakan di HP?</div>
-      <div class="box_text">
-        Ya, web ini responsif untuk semua layar.
-      </div>
-    </div>
+    <?php
+        endwhile;
+      else:
+        echo "<p style='color:#666;'>Belum ada FAQ tersedia.</p>";
+      endif;
+    ?>
 
   </div>
 </section>
 
-
-
 <!-- ==================== MASUKAN ==================== -->
 <section class="masukan" id="masukan">
   <h2>Punya Ide atau Saran? Ceritakan di Sini!</h2>
-  <form class="masukan-form">
-    <textarea placeholder="Ketik saran dan kritik di sini!" required></textarea>
-    <button type="submit">Kirim</button>
+
+  <!-- NOTIFIKASI -->
+  <?php if (isset($_SESSION['notif_masukan'])): ?>
+      <p class="notif" style="color: green; font-weight: bold;">
+          <?= $_SESSION['notif_masukan']; unset($_SESSION['notif_masukan']); ?>
+      </p>
+  <?php endif; ?>
+
+  <form class="masukan-form" method="POST">
+    <textarea name="pesan" placeholder="Ketik saran dan kritik di sini!" required></textarea>
+    <button type="submit" name="kirim_masukan">Kirim</button>
   </form>
 </section>
-
-
 
 <!-- ==================== FOOTER ==================== -->
 <footer class="footer">

@@ -16,7 +16,7 @@ if (!isset($_GET['id'])) {
 }
 
 $id = intval($_GET['id']);
-$query = $conn->prepare("SELECT * FROM hasil_bmi WHERE id_bmi = ? AND id_user = ?");
+$query = $conn->prepare("SELECT * FROM hasil_bmi WHERE id_hasil = ? AND id_user = ?");
 $query->bind_param("ii", $id, $id_user);
 $query->execute();
 $result = $query->get_result();
@@ -32,7 +32,7 @@ $weight = $data['berat'];
 $bmi    = $data['nilai_bmi'];
 $ideal  = $data['berat_ideal'];
 $cat    = $data['kategori'];
-$tgl    = $data['tanggal_input'];
+$tgl    = $data['tanggal'];
 
 // Tentukan subtitle berdasarkan kategori
 switch ($cat) {
