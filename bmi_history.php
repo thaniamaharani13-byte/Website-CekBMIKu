@@ -1,12 +1,20 @@
 <?php
 session_start();
-require_once __DIR__ . '/php/koneksi.php';
+require_once __DIR__ . '/koneksi.php';
 if (!isset($_SESSION['admin_id'])) { header('Location: login.php'); exit; }
 
+// QUERY DIPERBAIKI: Menggunakan JOIN ke tabel users untuk mendapatkan nama, 
+// dan memilih kolom 'kategori'
 $res = $conn->query("
-    SELECT id, height_cm AS tinggi, weight_kg AS berat, bmi, note, created_at AS tanggal
-    FROM bmi_results
-    ORDER BY created_at DESC
+    SELECT 
+        h.id, h.user_id, h.height_cm, h.weight_kg, h.bmi, h.kategori, h.tanggal,
+        u.nama 
+    FROM 
+        hasil_bmi h
+    LEFT JOIN 
+        users u ON h.user_id = u.id_user
+    ORDER BY 
+        h.tanggal DESC
 ");
 ?>
 <!doctype html>
@@ -32,8 +40,8 @@ $res = $conn->query("
 <tr>
   <td><?php echo $i++; ?></td>
   <td><?php echo htmlspecialchars($r['nama'] ?? $r['user_id']); ?></td>
-  <td><?php echo htmlspecialchars($r['tinggi']); ?></td>
-  <td><?php echo htmlspecialchars($r['berat']); ?></td>
+  <td><?php echo htmlspecialchars($r['height_cm']); ?></td>
+  <td><?php echo htmlspecialchars($r['weight_kg']); ?></td>
   <td><?php echo htmlspecialchars($r['bmi']); ?></td>
   <td><?php echo htmlspecialchars($r['kategori']); ?></td>
   <td><?php echo htmlspecialchars($r['tanggal']); ?></td>

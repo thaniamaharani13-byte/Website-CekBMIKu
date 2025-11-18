@@ -1,20 +1,21 @@
 <?php
 session_start();
-require_once __DIR__ . '/php/koneksi.php';
+require_once __DIR__ . '/koneksi.php'; // Pastikan path ini benar
 if (!isset($_SESSION['admin_id'])) { header('Location: login.php'); exit; }
 
 // Hapus artikel
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    $stmt = $conn->prepare('DELETE FROM artikel WHERE id = ?');
+    // DIPERBAIKI: Hapus berdasarkan 'id_artikel'
+    $stmt = $conn->prepare('DELETE FROM artikel WHERE id_artikel = ?'); 
     $stmt->bind_param('i', $id);
     $stmt->execute();
     header('Location: articles.php');
     exit;
 }
 
-// Ambil semua artikel
-$res = $conn->query('SELECT * FROM artikel ORDER BY tanggal DESC');
+// DIPERBAIKI: Ambil 'id_artikel'
+$res = $conn->query('SELECT id_artikel, judul, tanggal FROM artikel ORDER BY tanggal DESC');
 ?>
 <!doctype html>
 <html lang="id">
@@ -46,8 +47,8 @@ $res = $conn->query('SELECT * FROM artikel ORDER BY tanggal DESC');
   <td><?php echo htmlspecialchars($a['judul']); ?></td>
   <td><?php echo htmlspecialchars($a['tanggal']); ?></td>
   <td>
-    <a class="btn btn-sm btn-info" href="article_edit.php?id=<?php echo $a['id']; ?>">Edit</a>
-    <a class="btn btn-sm btn-danger" href="articles.php?delete=<?php echo $a['id']; ?>" onclick="return confirm('Hapus artikel ini?')">Hapus</a>
+    <a class="btn btn-sm btn-info" href="article_edit.php?id=<?php echo $a['id_artikel']; ?>">Edit</a>
+    <a class="btn btn-sm btn-danger" href="articles.php?delete=<?php echo $a['id_artikel']; ?>" onclick="return confirm('Hapus artikel ini?')">Hapus</a>
   </td>
 </tr>
 <?php endwhile; ?>

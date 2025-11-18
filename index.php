@@ -70,18 +70,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Simpan ke database
     $stmt = $conn->prepare("
-    INSERT INTO hasil_bmi (id_user, berat, tinggi, jenis_kelamin, nilai_bmi, berat_ideal, kategori)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO hasil_bmi (user_id, height_cm, weight_kg, bmi, berat_ideal, kategori, tanggal)
+    VALUES (?, ?, ?, ?, ?, ?, NOW())
 ");
 
-$stmt->bind_param("iddsdds", 
-    $id_user,       // i
-    $weight,        // d
-    $height,        // d
-    $gender,        // s
-    $bmi,           // d
-    $ideal,         // d
-    $kategori       // s
+// String bind_param yang BENAR adalah "idddds" (6 huruf)
+$stmt->bind_param("idddds", 
+    $id_user,       // i (integer)
+    $height,      // d (double/angka desimal)
+    $weight,      // d (double/angka desimal)
+    $bmi,         // d (double/angka desimal)
+    $ideal,       // d (double/angka desimal)
+    $kategori     // s (string/teks)
 );
 
     if ($stmt->execute()) {
@@ -167,42 +167,60 @@ $stmt->bind_param("iddsdds",
 
 </section>
 
-<!-- ==================== TENTANG KAMI ==================== -->
+<?php
+// 1. AMBIL KONEKSI DATABASE (pastikan ini ada di atas file)
+// require_once __DIR__ . '/koneksi.php';
+
+// 2. AMBIL DATA DARI TABEL (KITA AMBIL BARIS DENGAN ID=1)
+$res_about = $conn->query("SELECT * FROM tentang_kami WHERE id = 1");
+$data_about = $res_about->fetch_assoc();
+
+// Jika data tidak ditemukan, beri nilai default
+if (!$data_about) {
+    $data_about = [
+        'judul' => 'Tentang Kami (Data tidak ditemukan)',
+        'gambar_url' => 'asset/BannerTentangKami.png',
+        'paragraf_pembuka' => 'Silakan isi konten melalui halaman admin.',
+        'tujuan_isi' => 'Konten belum diisi.',
+        'fitur_isi' => '- Konten belum diisi.',
+        'email_footer' => 'email@contoh.com'
+    ];
+}
+?>
+
+<!-- ==================== Tentang Kami ==================== -->
 <section id="tentangkami" class="about-section">
 
   <div class="about-hero">
-    <img src="asset/BannerTentangKami.png" alt="Banner Tentang Kami" class="about-banner">
+    <img src="<?php echo htmlspecialchars($data_about['gambar_url']); ?>" alt="Banner Tentang Kami" class="about-banner">
   </div>
 
   <div class="about-content">
-    <h2><strong>CekBMIku – Cek Sehatmu!</strong></h2>
+    <h2><strong><?php echo htmlspecialchars($data_about['judul']); ?></strong></h2>
+    
     <p>
-      Website kalkulator BMI yang membantu pengguna mengetahui apakah berat badan mereka sudah ideal berdasarkan tinggi badan.
-      Selain menghitung BMI, CekBMIku juga memberikan penjelasan kategori berat badan serta tips menjaga pola hidup sehat.
+      <?php echo nl2br(htmlspecialchars($data_about['paragraf_pembuka'])); ?>
     </p>
 
     <div class="info-container">
       <div class="info-box">
         <p>
           <strong>Tujuan kami sederhana:</strong><br>
-          Membantu setiap orang lebih sadar akan kesehatannya melalui cara yang praktis dan menyenangkan.
+          <?php echo nl2br(htmlspecialchars($data_about['tujuan_isi'])); ?>
         </p>
       </div>
 
       <div class="info-box">
         <p>
           <strong>Fitur Utama:</strong><br>
-          - Kalkulator BMI interaktif<br>
-          - Penjelasan hasil dan kategori<br>
-          - Tips sehat sesuai hasil BMI<br>
-          - FAQ dan artikel seputar kesehatan
+          <?php echo nl2br(htmlspecialchars($data_about['fitur_isi'])); ?>
         </p>
       </div>
     </div>
 
-    <p class="footer-email">📧 cekbmiku@gmail.com</p>
-  </div>
+    <p class="footer-email"><?php echo htmlspecialchars($data_about['email_footer']); ?></p>
 
+  </div>
 </section>
 
 <!-- ==================== ARTIKEL (DINAMIS DATABASE) ==================== -->
@@ -217,10 +235,10 @@ $stmt->bind_param("iddsdds",
             <a href="<?= htmlspecialchars($a['link']) ?>" class="artikel-card" target="_blank">
 
                 <img 
-                    src="uploads/artikel/<?= htmlspecialchars($a['gambar']) ?>" 
-                    alt="<?= htmlspecialchars($a['judul']) ?>"
-                >
-
+                  src="asset/artikel/<?= htmlspecialchars($a['gambar']) ?>" 
+                  alt="<?= htmlspecialchars($a['judul']) ?>"
+                >
+ 
                 <div class="artikel-text">
                     <h3><?= htmlspecialchars($a['judul']) ?></h3>
                     <p><?= htmlspecialchars(substr($a['deskripsi'], 0, 120)) ?>...</p>

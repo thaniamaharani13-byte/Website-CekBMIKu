@@ -13,6 +13,9 @@
         <li class="nav-item"><a class="nav-link" href="users.php">Pengguna</a></li>
         <li class="nav-item"><a class="nav-link" href="bmi_history.php">Riwayat BMI</a></li>
         <li class="nav-item"><a class="nav-link" href="articles.php">Artikel</a></li>
+        <li class="nav-item"><a class="nav-link" href="masukan.php">Masukan User</a></li> 
+        <li class="nav-item"><a class="nav-link" href="faq_admin.php">FAQ</a></li>
+        <li class="nav-item"><a class="nav-link" href="about_admin.php">Tentang Kami</a></li>
       </ul>
       <div class="d-flex">
         <span class="navbar-text me-2"><?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin'); ?></span>
