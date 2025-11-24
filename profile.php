@@ -1,11 +1,11 @@
 <?php
 // ==========================================
-// profile.php - Halaman Profil User
+// profile.php - Halaman Profil User (DENGAN GRAFIK BMI)
 // ==========================================
 session_start();
 require_once __DIR__ . '/koneksi.php';
 
-// Cek login. Jika sesi hilang, arahkan ke login.
+// Cek login
 if (!isset($_SESSION['id_user'])) {
     header("Location: login.php");
     exit;
@@ -20,23 +20,48 @@ $query->execute();
 $result_user = $query->get_result();
 $user = $result_user->fetch_assoc();
 
-// Jika data user tidak ditemukan, paksa ke login/logout
 if (!$user) {
-    // Kita arahkan ke logout.php agar sesi benar-benar bersih, lalu ke login.
     header("Location: logout.php"); 
     exit;
 }
 
-// 2. Ambil riwayat BMI user
-$stmt = $conn->prepare("
-    SELECT id, bmi, kategori, tanggal, weight_kg, height_cm
+// 2. Ambil Riwayat untuk Daftar (Semua)
+$stmt_list = $conn->prepare("
+    SELECT bmi, kategori, tanggal, weight_kg, height_cm, id
     FROM hasil_bmi
     WHERE user_id = ?
     ORDER BY tanggal DESC
 ");
-$stmt->bind_param("i", $id_user);
-$stmt->execute();
-$result_bmi = $stmt->get_result();
+$stmt_list->bind_param("i", $id_user);
+$stmt_list->execute();
+$result_list = $stmt_list->get_result(); 
+
+// 3. Ambil Riwayat untuk Grafik (5 terakhir)
+$stmt_chart = $conn->prepare("
+    SELECT bmi, tanggal
+    FROM hasil_bmi
+    WHERE user_id = ?
+    ORDER BY tanggal DESC
+    LIMIT 5
+");
+$stmt_chart->bind_param("i", $id_user);
+$stmt_chart->execute();
+$result_chart = $stmt_chart->get_result();
+
+$chartData = [];
+while ($row = $result_chart->fetch_assoc()) {
+    $chartData[] = $row;
+}
+$chartData = array_reverse($chartData);
+
+$labels = array_map(function($item) {
+    return date('d M', strtotime($item['tanggal']));
+}, $chartData);
+
+$data_bmi = array_column($chartData, 'bmi');
+
+$labels_json = json_encode($labels);
+$data_bmi_json = json_encode($data_bmi);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -46,6 +71,9 @@ $result_bmi = $stmt->get_result();
     <title>CekBMiku - Profil</title>
     <link rel="stylesheet" href="css/profile.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
 </head>
 
 <body>
@@ -82,15 +110,18 @@ $result_bmi = $stmt->get_result();
             </div>
         </div>
 
+        <?php if (count($chartData) > 1): ?>
+        <h4 class="riwayat-title" style="margin-top: 40px;">Tren Perubahan BMI (5 Terakhir)</h4> <div class="chart-container" style="max-height: 300px; margin-bottom: 40px;"> <canvas id="bmiChart"></canvas>
+        </div>
+        <?php elseif (count($chartData) == 1): ?>
+        <p class="no-history" style="margin-top: 40px; margin-bottom: 40px;">BMI Anda tercatat 1 kali (Diperlukan minimal 2 data untuk melihat tren).</p>
+        <?php endif; ?>
         <h4 class="riwayat-title">Riwayat Cek BMI</h4>
 
-        <div class="riwayat-list" id="riwayatList">
-            <?php if ($result_bmi->num_rows > 0): ?>
-                <?php while ($row = $result_bmi->fetch_assoc()): 
-                    // Tentukan warna latar belakang berdasarkan kategori (Opsional)
-                    $kategori_class = strtolower(str_replace(' ', '-', $row['kategori']));
-                ?>
-                    <div class="riwayat-item <?= $kategori_class ?>">
+        <div class="riwayat-list mt-3" id="riwayatList"> 
+            <?php if ($result_list->num_rows > 0): ?>
+                <?php while ($row = $result_list->fetch_assoc()): ?>
+                    <div class="riwayat-item">
                         <span class="status"><?= htmlspecialchars($row['kategori']); ?></span>
                         
                         <p>Hasil BMI: <?= htmlspecialchars($row['bmi']); ?></p>
@@ -107,14 +138,72 @@ $result_bmi = $stmt->get_result();
             <?php endif; ?>
         </div>
 
-        <div class="logout-container">
-            <a href="logout.php" class="logout-btn">
+        <div class="logout-container" style="margin-top: 40px;"> <a href="logout.php" class="logout-btn">
                 <i class="fa-solid fa-right-from-bracket"></i> Logout
             </a>
         </div>
 
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const labels = <?php echo $labels_json; ?>;
+    const data_bmi = <?php echo $data_bmi_json; ?>;
+    
+    if (data_bmi && data_bmi.length > 1) {
+        const ctx = document.getElementById('bmiChart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Nilai BMI',
+                    data: data_bmi,
+                    borderColor: '#D8518C', 
+                    backgroundColor: 'rgba(74, 142, 245, 0.2)', 
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#D8518C',
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Tren BMI 5 Pengecekan Terakhir',
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Nilai BMI'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tanggal Pengecekan'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
 
 <script src="js/profile.js"></script>
 </body>
