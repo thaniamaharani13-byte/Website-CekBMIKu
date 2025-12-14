@@ -1,5 +1,4 @@
 <?php
-// profile.php - Halaman Profil User (DENGAN GRAFIK BMI)
 session_start();
 require_once __DIR__ . '/koneksi.php';
 
