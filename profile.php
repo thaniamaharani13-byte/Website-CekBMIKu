@@ -1,7 +1,5 @@
 <?php
-// ==========================================
 // profile.php - Halaman Profil User (DENGAN GRAFIK BMI)
-// ==========================================
 session_start();
 require_once __DIR__ . '/koneksi.php';
 
@@ -13,7 +11,7 @@ if (!isset($_SESSION['id_user'])) {
 
 $id_user = $_SESSION['id_user'];
 
-// 1. Ambil data user
+// Ambil data user
 $query = $conn->prepare("SELECT nama, email, umur, jenis_kelamin FROM users WHERE id_user = ?");
 $query->bind_param("i", $id_user);
 $query->execute();
@@ -25,7 +23,7 @@ if (!$user) {
     exit;
 }
 
-// 2. Ambil Riwayat untuk Daftar (Semua)
+// Ambil Riwayat untuk Daftar
 $stmt_list = $conn->prepare("
     SELECT bmi, kategori, tanggal, weight_kg, height_cm, id
     FROM hasil_bmi
@@ -36,7 +34,7 @@ $stmt_list->bind_param("i", $id_user);
 $stmt_list->execute();
 $result_list = $stmt_list->get_result(); 
 
-// 3. Ambil Riwayat untuk Grafik (5 terakhir)
+// Ambil Riwayat untuk Grafik 
 $stmt_chart = $conn->prepare("
     SELECT bmi, tanggal
     FROM hasil_bmi
