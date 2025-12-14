@@ -1,12 +1,11 @@
 <?php
 session_start();
-require_once __DIR__ . '/koneksi.php'; // Pastikan path ini benar
+require_once __DIR__ . '/koneksi.php';
 if (!isset($_SESSION['admin_id'])) { header('Location: login.php'); exit; }
 
 // Hapus artikel
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    // DIPERBAIKI: Hapus berdasarkan 'id_artikel'
     $stmt = $conn->prepare('DELETE FROM artikel WHERE id_artikel = ?'); 
     $stmt->bind_param('i', $id);
     $stmt->execute();
@@ -14,7 +13,7 @@ if (isset($_GET['delete'])) {
     exit;
 }
 
-// DIPERBAIKI: Ambil 'id_artikel'
+// Ambil 'id_artikel'
 $res = $conn->query('SELECT id_artikel, judul, tanggal FROM artikel ORDER BY tanggal DESC');
 ?>
 <!doctype html>
