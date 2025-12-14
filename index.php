@@ -16,7 +16,7 @@ while ($row = $artikelQuery->fetch_assoc()) {
     
 }
 
-// =================== PROSES MASUKAN ===================
+// PROSES MASUKAN
 if (isset($_POST['kirim_masukan'])) {
 
     $id_user = $_SESSION['id_user'];
@@ -74,7 +74,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     VALUES (?, ?, ?, ?, ?, ?, NOW())
 ");
 
-// String bind_param yang BENAR adalah "idddds" (6 huruf)
 $stmt->bind_param("idddds", 
     $id_user,       // i (integer)
     $height,      // d (double/angka desimal)
@@ -105,7 +104,7 @@ $stmt->bind_param("idddds",
 
 <body>
 
-<!-- ==================== NAVBAR ==================== -->
+<!-- NAVBAR -->
 <nav>
   <div class="nav-content">
     <div class="nav-logo">
@@ -130,7 +129,7 @@ $stmt->bind_param("idddds",
   </div>
 </nav>
 
-<!-- ==================== FORM BMI ==================== -->
+<!-- FORM BMI -->
 <section id="home" class="container">
     
     <div class="left-section">
@@ -168,10 +167,10 @@ $stmt->bind_param("idddds",
 </section>
 
 <?php
-// 1. AMBIL KONEKSI DATABASE (pastikan ini ada di atas file)
+// AMBIL KONEKSI DATABASE
 // require_once __DIR__ . '/koneksi.php';
 
-// 2. AMBIL DATA DARI TABEL (KITA AMBIL BARIS DENGAN ID=1)
+// AMBIL DATA DARI TABEL
 $res_about = $conn->query("SELECT * FROM tentang_kami WHERE id = 1");
 $data_about = $res_about->fetch_assoc();
 
@@ -188,7 +187,7 @@ if (!$data_about) {
 }
 ?>
 
-<!-- ==================== Tentang Kami ==================== -->
+<!-- Tentang Kami -->
 <section id="tentangkami" class="about-section">
 
   <div class="about-hero">
@@ -223,7 +222,7 @@ if (!$data_about) {
   </div>
 </section>
 
-<!-- ==================== ARTIKEL (DINAMIS DATABASE) ==================== -->
+<!-- ARTIKEL (DINAMIS DATABASE) -->
 <section id="artikel" class="artikel-section">
   <h2>Artikel & Tips Hidup Sehat</h2>
 
@@ -255,7 +254,7 @@ if (!$data_about) {
   </div>
 </section>
 
-<!-- ==================== FAQ ==================== -->
+<!-- FAQ -->
 <section id="faq" class="faq-section">
   <h2>Yuk, Kenali Lebih Dalam Tentang BMI!</h2>
 
@@ -284,7 +283,7 @@ if (!$data_about) {
   </div>
 </section>
 
-<!-- ==================== MASUKAN ==================== -->
+<!-- MASUKAN -->
 <section class="masukan" id="masukan">
   <h2>Punya Ide atau Saran? Ceritakan di Sini!</h2>
 
@@ -301,7 +300,7 @@ if (!$data_about) {
   </form>
 </section>
 
-<!-- ==================== FOOTER ==================== -->
+<!-- FOOTER -->
 <footer class="footer">
   <div class="footer-container">
 
