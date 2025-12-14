@@ -28,7 +28,7 @@ if (!$data) {
     die("Data tidak ditemukan atau bukan milik Anda.");
 }
 
-// Ambil data (Ini sudah benar)
+// Ambil data
 $height = $data['height_cm']; 
 $weight = $data['weight_kg'];
 $bmi    = $data['bmi'];
@@ -54,8 +54,8 @@ switch ($cat) {
         $subtitle = "-";
 }
 
-// PENGAMBILAN SARAN DARI DATABASE (BARU)
-$kategori_db = strtolower($cat); // Digunakan juga untuk query artikel
+// PENGAMBILAN SARAN DARI DATABASE
+$kategori_db = strtolower($cat);
 
 $stmt_saran = $conn->prepare("SELECT saran_makanan, saran_vitamin FROM saran_bmi WHERE kategori_bmi = ?");
 $stmt_saran->bind_param("s", $kategori_db);
@@ -70,9 +70,8 @@ if ($saran_data) {
     $card_food = "Saran makanan tidak ditemukan. Pastikan data 'saran_bmi' sudah terisi di database.";
     $card_vit  = "Saran vitamin tidak ditemukan. Pastikan data 'saran_bmi' sudah terisi di database.";
 }
-// AKHIR PENGAMBILAN SARAN
 
-// KODE ARTIKEL TERBARU ANDA
+// KODE ARTIKEL
 $stmt_artikel = $conn->prepare("SELECT * FROM artikel WHERE LOWER(kategori_bmi) = ?");
 $stmt_artikel->bind_param("s", $kategori_db);
 $stmt_artikel->execute();
@@ -84,7 +83,6 @@ if ($artikel->num_rows == 0) {
     $stmt_fallback->execute();
     $artikel = $stmt_fallback->get_result();
 }
-// AKHIR KODE ARTIKEL BARU
 ?>
 
 <!DOCTYPE html>
