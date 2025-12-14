@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $login_success = false;
 
-        // --- 1. Coba Login sebagai USER BIASA (via Email) ---
+        // --- Login sebagai USER BIASA (via Email) ---
         $stmt_user = $conn->prepare("SELECT id_user, nama, password_hash FROM users WHERE email = ? LIMIT 1");
         $stmt_user->bind_param("s", $email_or_username);
         $stmt_user->execute();
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt_user->close();
 
-        // --- 2. Jika Gagal sebagai User, Coba Login sebagai ADMIN (via Username) ---
+        // --- Jika Gagal sebagai User, Coba Login sebagai ADMIN (via Username) ---
         if (!$login_success) {
             // Cek ke tabel 'admin' menggunakan 'username'
             $stmt_admin = $conn->prepare('SELECT id, username, password, nama FROM admin WHERE username = ? LIMIT 1');
@@ -47,14 +47,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['admin_id'] = $row_admin['id'];
                     $_SESSION['admin_name'] = $row_admin['nama'];
                     $login_success = true;
-                    header('Location: dashboard.php'); // Arahkan ke dashboard admin
+                    header('Location: dashboard.php'); 
                     exit;
                 }
             }
             $stmt_admin->close();
         }
 
-        // --- 3. Jika Keduanya Gagal ---
+        // --- Jika Keduanya Gagal ---
         if (!$login_success) {
             $error = "Email/Username atau password salah.";
         }
