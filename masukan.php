@@ -1,6 +1,6 @@
 <?php
 session_start();
-// Pastikan path koneksi.php sudah benar (sesuaikan jika berbeda)
+// Pastikan path koneksi.php sudah benar
 require_once __DIR__ . '/koneksi.php'; 
 
 // Cek jika bukan Admin, tendang ke login
@@ -10,10 +10,9 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 // Query untuk mengambil masukan beserta nama user
-// PERBAIKAN: Menggunakan m.id_masukan sesuai struktur tabel
 $query = "
     SELECT 
-        m.id_masukan,   /* DIUBAH DARI m.id MENJADI m.id_masukan */
+        m.id_masukan,   
         u.nama, 
         m.pesan, 
         m.tanggal
