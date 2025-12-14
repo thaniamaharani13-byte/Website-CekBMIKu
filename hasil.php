@@ -17,7 +17,7 @@ if (!isset($_GET['id'])) {
 
 $id = intval($_GET['id']);
 
-// Query untuk mengambil data hasil (Ini sudah benar)
+// Query untuk mengambil data hasil
 $query = $conn->prepare("SELECT * FROM hasil_bmi WHERE id = ? AND user_id = ?");
 $query->bind_param("ii", $id, $id_user);
 $query->execute();
@@ -36,7 +36,7 @@ $ideal  = $data['berat_ideal'];
 $cat    = $data['kategori'];
 $tgl    = $data['tanggal'];
 
-// Tentukan subtitle berdasarkan kategori (Ini sudah benar)
+// Tentukan subtitle berdasarkan kategori
 switch ($cat) {
     case "Kurus":
         $subtitle = "Berat kurang dari normal";
@@ -54,7 +54,7 @@ switch ($cat) {
         $subtitle = "-";
 }
 
-// ====================== PENGAMBILAN SARAN DARI DATABASE (BARU) ======================
+// PENGAMBILAN SARAN DARI DATABASE (BARU)
 $kategori_db = strtolower($cat); // Digunakan juga untuk query artikel
 
 $stmt_saran = $conn->prepare("SELECT saran_makanan, saran_vitamin FROM saran_bmi WHERE kategori_bmi = ?");
@@ -70,9 +70,9 @@ if ($saran_data) {
     $card_food = "Saran makanan tidak ditemukan. Pastikan data 'saran_bmi' sudah terisi di database.";
     $card_vit  = "Saran vitamin tidak ditemukan. Pastikan data 'saran_bmi' sudah terisi di database.";
 }
-// ====================== AKHIR PENGAMBILAN SARAN ======================
+// AKHIR PENGAMBILAN SARAN
 
-// ====================== KODE ARTIKEL TERBARU ANDA ======================
+// KODE ARTIKEL TERBARU ANDA
 $stmt_artikel = $conn->prepare("SELECT * FROM artikel WHERE LOWER(kategori_bmi) = ?");
 $stmt_artikel->bind_param("s", $kategori_db);
 $stmt_artikel->execute();
@@ -84,7 +84,7 @@ if ($artikel->num_rows == 0) {
     $stmt_fallback->execute();
     $artikel = $stmt_fallback->get_result();
 }
-// ====================== AKHIR KODE ARTIKEL BARU ======================
+// AKHIR KODE ARTIKEL BARU
 ?>
 
 <!DOCTYPE html>
@@ -192,7 +192,6 @@ if ($artikel->num_rows == 0) {
 </footer>
 
 <script>
-// (Ini sudah benar)
 sessionStorage.setItem('bmiResult', JSON.stringify({
   height: <?= $height ?>,
   weight: <?= $weight ?>,
