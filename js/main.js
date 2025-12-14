@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ==================== NAVBAR ACTIVE & SCROLL SMOOTH ====================
+  // NAVBAR ACTIVE & SCROLL SMOOTH
   const navLinks = document.querySelectorAll(".nav-menu a");
 
   navLinks.forEach(link => {
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  // ==================== GENDER BUTTON ====================
+  // GENDER BUTTON
   const male = document.getElementById("male");
   const female = document.getElementById("female");
   const genderInput = document.getElementById("genderInput");
@@ -39,10 +39,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  // ==================== BMI FORM ====================
+  // BMI FORM
   const form = document.querySelector("#bmiForm");
 
-  // Input tinggi & berat (fix error)
+  // Input tinggi & berat 
   const inputHeight = document.querySelector("input[name='height']");
   const inputWeight = document.querySelector("input[name='weight']");
 
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  // ==================== FAQ TOGGLE ====================
+  // FAQ TOGGLE
   const faqBoxes = document.querySelectorAll(".box");
 
   faqBoxes.forEach(box => {
